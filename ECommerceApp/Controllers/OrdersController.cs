@@ -22,7 +22,6 @@ namespace ECommerceApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Checkout(string shippingAddress, string paymentMethod)
         {
-            // Mock user ID
             int userId = 1;
             try
             {

@@ -20,26 +20,15 @@ namespace ECommerceApp.Models
 
         [Required]
         [StringLength(255)]
-        public string PasswordHash { get; set; }
-
-        [Required]
-        [StringLength(255)]
-        public string Address { get; set; }
-
-        [Required]
-        [StringLength(20)]
-        public string Phone { get; set; }
+        public string Password { get; set; }
 
         public bool IsActive { get; set; } = true;
 
-        [Required]
-        [StringLength(20)]
-        public string Role { get; set; } = "User"; // "User" or "Admin"
+        public Role Role { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
-        // Navigation properties
         public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
     }

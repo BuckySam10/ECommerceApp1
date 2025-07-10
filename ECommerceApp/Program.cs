@@ -1,5 +1,4 @@
 using ECommerceApp.Data;
-using ECommerceApp.Middleware;
 using ECommerceApp.Repositories;
 using ECommerceApp.Repositories.Interfaces;
 using ECommerceApp.Services;
@@ -22,14 +21,33 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
-builder.Services.AddScoped<IProductRepository,  ProductRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
 // Add services
 builder.Services.AddScoped<IHashedPassword, PasswordService>();
-builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<IOrderService,  OrderService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<ICartService, CartService>();
+
+// Get JWT configuration values with null checks
+var jwtSecretKey = builder.Configuration["JWT:SecretKey"];
+var jwtIssuer = builder.Configuration["JWT:Issuer"];
+var jwtAudience = builder.Configuration["JWT:Audience"];
+
+// Validate JWT configuration
+if (string.IsNullOrEmpty(jwtSecretKey))
+{
+    throw new InvalidOperationException("JWT:SecretKey is not configured in appsettings.json");
+}
+if (string.IsNullOrEmpty(jwtIssuer))
+{
+    throw new InvalidOperationException("JWT:Issuer is not configured in appsettings.json");
+}
+if (string.IsNullOrEmpty(jwtAudience))
+{
+    throw new InvalidOperationException("JWT:Audience is not configured in appsettings.json");
+}
 
 // Add JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -38,35 +56,57 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"])),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
             ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["JWT:Issuer"],
+            ValidIssuer = jwtIssuer,
             ValidateAudience = true,
-            ValidAudience = builder.Configuration["JWT:Audience"],
+            ValidAudience = jwtAudience,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
         };
+
+        // Configure JWT to read from cookies
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                // Check if token is in cookie
+                var token = context.Request.Cookies["JwtToken"];
+                if (!string.IsNullOrEmpty(token))
+                {
+                    context.Token = token;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
-builder.Services.AddAuthorization();
-
-builder.Services.AddControllers();
-builder.Services.AddControllersWithViews();
-
-// Add CORS if needed
+// CORS configuration - Remove duplicate CORS policies
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddPolicy("AllowSpecific", policy =>
     {
-        builder.AllowAnyOrigin()
+        policy.WithOrigins("https://your-frontend-domain.com")
+               .AllowAnyMethod()
+               .AllowAnyHeader()
+               .AllowCredentials();
+    });
+
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
                .AllowAnyMethod()
                .AllowAnyHeader();
     });
 });
 
+builder.Services.AddAuthorization();
+builder.Services.AddControllers();
+builder.Services.AddControllersWithViews();
+builder.Services.AddAntiforgery();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -77,10 +117,15 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-app.UseCors("AllowAll");
-
-// Add JWT middleware
-app.UseJwtMiddleware();
+// Use only one CORS policy - choose based on your needs
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors("AllowAll"); // For development
+}
+else
+{
+    app.UseCors("AllowSpecific"); // For production
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

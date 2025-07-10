@@ -16,7 +16,6 @@ namespace ECommerceApp.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Mock user ID (replace with actual user authentication)
             int userId = 1;
             var cart = await _cartService.GetCartByUserIdAsync(userId);
             return View(cart);
@@ -25,7 +24,6 @@ namespace ECommerceApp.Controllers
         [HttpPost]
         public async Task<IActionResult> AddToCart(int productId, int quantity)
         {
-            // Mock user ID
             int userId = 1;
             try
             {

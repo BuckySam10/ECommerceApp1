@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ECommerceApp.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace ECommerceApp.DTOs.User
 {
@@ -12,6 +13,7 @@ namespace ECommerceApp.DTOs.User
         [StringLength(255)]
         [DataType(DataType.Password)]
         public string Password { get; set; }
-        public bool RememberMe { get; set; }
+
+        public Role Role { get; set; }
     }
 }

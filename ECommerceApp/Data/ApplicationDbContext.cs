@@ -25,7 +25,6 @@ namespace ECommerceApp.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configure relationships
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Category)
                 .WithMany(c => c.Products)
@@ -68,7 +67,6 @@ namespace ECommerceApp.Data
                 .HasForeignKey(oi => oi.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Configure indexes for performance
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Username)
                 .IsUnique();
@@ -88,13 +86,11 @@ namespace ECommerceApp.Data
             modelBuilder.Entity<Order>()
                 .HasIndex(o => o.OrderDate);
 
-            // Seed data
             SeedData(modelBuilder);
         }
 
         private void SeedData(ModelBuilder modelBuilder)
         {
-            // Seed Categories
             modelBuilder.Entity<Category>().HasData(
                 new Category { Id = 1, Name = "Electronics", Description = "Electronic devices and gadgets", CreatedAt = DateTime.Now, IsActive = true },
                 new Category { Id = 2, Name = "Clothing", Description = "Apparel and fashion items", CreatedAt = DateTime.Now, IsActive = true },
@@ -102,7 +98,7 @@ namespace ECommerceApp.Data
                 new Category { Id = 4, Name = "Home & Garden", Description = "Home improvement and garden supplies", CreatedAt = DateTime.Now, IsActive = true }
             );
 
-            // Seed Products
+           
             modelBuilder.Entity<Product>().HasData(
                 new Product { Id = 1, Name = "Laptop", Description = "High-performance laptop", Price = 123.60m, CategoryId = 1, StockQuantity = 50, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, IsActive = true },
                 new Product { Id = 2, Name = "T-Shirt", Description = "Cotton t-shirt", Price = 20.05m, CategoryId = 2, StockQuantity = 100, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, IsActive = true },

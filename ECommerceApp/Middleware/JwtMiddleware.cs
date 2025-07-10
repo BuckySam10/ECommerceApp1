@@ -1,32 +1,24 @@
-﻿using ECommerceApp.Services;
-using ECommerceApp.Services.Interfaces;
+﻿using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
 
 namespace ECommerceApp.Middleware
 {
     public class JwtMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IJwtService _jwtService;
 
-        public JwtMiddleware(RequestDelegate next, IJwtService jwtService)
+        public JwtMiddleware(RequestDelegate next)
         {
             _next = next;
-            _jwtService = jwtService;
         }
 
         public async Task InvokeAsync(HttpContext context)
         {
-            var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-
-            if (token != null)
+            var token = context.Request.Cookies["JwtToken"];
+            if (!string.IsNullOrEmpty(token))
             {
-                var principal = _jwtService.ValidateToken(token);
-                if (principal != null)
-                {
-                    context.User = principal;
-                }
+                context.Request.Headers.Append("Authorization", $"Bearer {token}");
             }
-
             await _next(context);
         }
     }

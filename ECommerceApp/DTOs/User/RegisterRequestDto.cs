@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ECommerceApp.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace ECommerceApp.DTOs.User
 {
@@ -17,15 +18,17 @@ namespace ECommerceApp.DTOs.User
         public string Username { get; set; }
 
         [Required]
-        [StringLength(255)]
+        [StringLength(255, MinimumLength = 6)]
+        [DataType(DataType.Password)]
         public string Password { get; set; }
 
         [Required]
-        [StringLength(255)]
-        public string Address { get; set; }
+        [DataType(DataType.Password)]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; }
 
-        [Required]
-        [StringLength(20)]
-        public string Phone { get; set; }
+        public Role Role { get; set; }
+
+
     }
 }
